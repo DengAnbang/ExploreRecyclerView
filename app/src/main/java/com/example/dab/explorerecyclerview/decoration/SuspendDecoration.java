@@ -1,4 +1,4 @@
-package com.example.dab.explorerecyclerview;
+package com.example.dab.explorerecyclerview.decoration;
 
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -13,9 +13,9 @@ import android.view.View;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
-import static com.example.dab.explorerecyclerview.SuspendDecoration.TitleGravity.CENTER;
-import static com.example.dab.explorerecyclerview.SuspendDecoration.TitleGravity.LEFT;
-import static com.example.dab.explorerecyclerview.SuspendDecoration.TitleGravity.RIGHT;
+import static com.example.dab.explorerecyclerview.decoration.SuspendDecoration.TitleGravity.CENTER;
+import static com.example.dab.explorerecyclerview.decoration.SuspendDecoration.TitleGravity.LEFT;
+import static com.example.dab.explorerecyclerview.decoration.SuspendDecoration.TitleGravity.RIGHT;
 
 
 /**
@@ -34,11 +34,11 @@ public abstract class SuspendDecoration extends RecyclerView.ItemDecoration {
 
     private static final String TAG = "SuspendDecoration";
 
-    private int mTitleHeight;//悬浮窗的高度
+    private int mTitleHeight=100;//悬浮窗的高度
     private Paint mBackgroundPaint;//悬浮窗的画笔
     private TextPaint mTextPaint;//悬浮窗内容的画笔
     @TitleGravity
-    private int mTitleGravity;//悬浮窗的内容显示位置(左,中,右)
+    private int mTitleGravity=TitleGravity.LEFT;//悬浮窗的内容显示位置(左,中,右)
     private int mTextOffsetX, mTextOffsetY;
 
     private Rect mRect;//悬浮窗的的矩形(动态改变的)
@@ -76,6 +76,7 @@ public abstract class SuspendDecoration extends RecyclerView.ItemDecoration {
         mRect = new Rect();
     }
 
+
     public SuspendDecoration() {
         mTitleHeight = 100;
         mBackgroundPaint = new Paint();
@@ -86,8 +87,12 @@ public abstract class SuspendDecoration extends RecyclerView.ItemDecoration {
         mTextPaint.setTextSize(30);
         mTextPaint.setColor(Color.DKGRAY);
         mRect = new Rect();
+        init();
     }
 
+    private void init() {
+
+    }
     /**
      * 设置字体的颜色
      *
