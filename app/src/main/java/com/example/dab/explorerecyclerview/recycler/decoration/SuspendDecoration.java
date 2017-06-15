@@ -1,4 +1,4 @@
-package com.example.dab.explorerecyclerview.decoration;
+package com.example.dab.explorerecyclerview.recycler.decoration;
 
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -13,9 +13,9 @@ import android.view.View;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
-import static com.example.dab.explorerecyclerview.decoration.SuspendDecoration.TitleGravity.CENTER;
-import static com.example.dab.explorerecyclerview.decoration.SuspendDecoration.TitleGravity.LEFT;
-import static com.example.dab.explorerecyclerview.decoration.SuspendDecoration.TitleGravity.RIGHT;
+import static com.example.dab.explorerecyclerview.recycler.decoration.SuspendDecoration.TitleGravity.CENTER;
+import static com.example.dab.explorerecyclerview.recycler.decoration.SuspendDecoration.TitleGravity.LEFT;
+import static com.example.dab.explorerecyclerview.recycler.decoration.SuspendDecoration.TitleGravity.RIGHT;
 
 
 /**

@@ -25,8 +25,6 @@ import java.net.URLConnection;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
-import master.flame.danmaku.danmaku.util.IOUtils;
-
 /**
  * Created by dab on 2017/4/25.
  */
@@ -266,7 +264,13 @@ public class ImageCache {
         } catch (IOException e) {
             e.printStackTrace();
         } finally {
-            IOUtils.closeQuietly(inputStream);
+            if (inputStream != null) {
+                try {
+                    inputStream.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
         }
         return null;
     }
