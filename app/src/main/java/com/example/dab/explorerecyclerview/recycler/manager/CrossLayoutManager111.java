@@ -13,8 +13,8 @@ import android.view.ViewGroup;
 public class CrossLayoutManager111 extends RecyclerView.LayoutManager {
     private static final String TAG = "CrossLayoutManager";
     private SparseArray<Rect> mItemRects;//key 是View的position，保存View的bounds 和 显示标志，
-    private int mFirstVisiPos;//屏幕可见的第一个View的Position
-    private int mLastVisiPos;//屏幕可见的最后一个View的Position
+    private int mFirstVisiblePos;//屏幕可见的第一个View的Position
+    private int mLastVisiblePos;//屏幕可见的最后一个View的Position
     private int mVerticalOffset;
 
     public CrossLayoutManager111() {
@@ -35,8 +35,8 @@ public class CrossLayoutManager111 extends RecyclerView.LayoutManager {
         if (getItemCount() == 0) {
             return;
         }
-        mFirstVisiPos = 0;
-        mLastVisiPos = getItemCount();
+        mFirstVisiblePos = 0;
+        mLastVisiblePos = getItemCount()-1;
         //初始化时调用 填充childView
         layout(recycler);
 //        layout(recycler,state);
@@ -97,13 +97,13 @@ public class CrossLayoutManager111 extends RecyclerView.LayoutManager {
                 if (dy > 0) {//需要回收当前屏幕，上越界的View
                     if (getDecoratedBottom(child) - dy < topOffset) {
 //                        removeAndRecycleView(child, recycler);
-                        mFirstVisiPos++;
+                        mFirstVisiblePos++;
 
                     }
                 } else if (dy < 0) {//回收当前屏幕，下越界的View
                     if (getDecoratedTop(child) - dy > getHeight() - getPaddingBottom()) {
 //                        removeAndRecycleView(child, recycler);
-                        mLastVisiPos--;
+                        mLastVisiblePos--;
 
                     }
                 }
@@ -114,59 +114,89 @@ public class CrossLayoutManager111 extends RecyclerView.LayoutManager {
 
         int leftOffset = getPaddingLeft();//布局时的左偏移
         int lineMaxHeight = 0;//每一行最大的高度
+        int rightOffset=0;
+        int bottomOffset=0;
         int horizontalSpace = getHorizontalSpace();
-
+        int columnNumber = 0;//列数
+        int lineNumber = 0;//行数
         if (dy >= 0) {
-            int minPos = mFirstVisiPos;
-            mLastVisiPos = getItemCount() - 1;
+            int minPos = mFirstVisiblePos;
+            mLastVisiblePos = getItemCount() - 1;
             if (getChildCount() > 0) {
                 View lastView = getChildAt(getChildCount() - 1);
                 minPos = getPosition(lastView) + 1;//从最后一个View+1开始吧
                 topOffset = getDecoratedTop(lastView);
                 leftOffset = getDecoratedRight(lastView);
                 lineMaxHeight = Math.max(lineMaxHeight, getDecoratedMeasurementVertical(lastView));
+
             }
-            for (int i = minPos; i <= mLastVisiPos; i++) {
+
+            for (int i = minPos; i <= mLastVisiblePos; i++) {
                 View child = recycler.getViewForPosition(i);
                 addView(child);
                 measureChildWithMargins(child, 0, 0);
                 int decoratedMeasurementVertical = getDecoratedMeasurementVertical(child);
                 int decoratedMeasurementHorizontal = getDecoratedMeasurementHorizontal(child);
+                int itemRight = leftOffset + decoratedMeasurementHorizontal;
+                if (i == 0) {
+                    topOffset=  topOffset + decoratedMeasurementVertical / 2;
+                }
+                //如果是单行,向右移动一个位置
+                if (columnNumber % 2 == 1) {
+                    leftOffset=leftOffset + decoratedMeasurementHorizontal;
+                    itemRight = leftOffset;
+                }
+
+                if (columnNumber == 2) {
+                    leftOffset = leftOffset - decoratedMeasurementHorizontal - decoratedMeasurementHorizontal ;
+                    itemRight = leftOffset;
+                    topOffset = topOffset + decoratedMeasurementVertical / 2;
+                    lineMaxHeight = lineMaxHeight + decoratedMeasurementVertical / 2;
+                }
+                if (columnNumber > 2) {
+                    leftOffset = leftOffset + decoratedMeasurementHorizontal + decoratedMeasurementHorizontal;
+                    itemRight = leftOffset;
+                    topOffset = topOffset - decoratedMeasurementVertical / 2;
+                }
+                if (i % 3 == 0) {
+                    itemRight = horizontalSpace + 1;
+                }
                 //当前列可以排列下当前的item
-                if (leftOffset + decoratedMeasurementHorizontal <= horizontalSpace) {
+                if (itemRight <= horizontalSpace) {
+                    rightOffset = leftOffset + decoratedMeasurementHorizontal;
+                    bottomOffset = topOffset + decoratedMeasurementVertical;
 
-                    if ((leftOffset / decoratedMeasurementHorizontal) % 2 == 1) {
-                        //如果是列数为单数,需要向下平移item的一半
-                        layoutDecoratedWithMargins(child, leftOffset, topOffset + decoratedMeasurementVertical / 2, leftOffset + decoratedMeasurementHorizontal, topOffset + decoratedMeasurementVertical + decoratedMeasurementVertical / 2);
-                        Rect rect = new Rect(leftOffset, topOffset + mVerticalOffset+ decoratedMeasurementVertical / 2, leftOffset + getDecoratedMeasurementHorizontal(child), topOffset + decoratedMeasurementVertical / 2+ getDecoratedMeasurementVertical(child) + mVerticalOffset);
-                        mItemRects.put(i, rect);
-                    } else {
-                        layoutDecoratedWithMargins(child, leftOffset, topOffset, leftOffset + decoratedMeasurementHorizontal, topOffset + decoratedMeasurementVertical);
-                        //保存Rect供逆序layout用
-                        Rect rect = new Rect(leftOffset, topOffset + mVerticalOffset, leftOffset + getDecoratedMeasurementHorizontal(child), topOffset + getDecoratedMeasurementVertical(child) + mVerticalOffset);
-                        mItemRects.put(i, rect);
-                    }
-
-
+                    layoutDecoratedWithMargins(child, leftOffset, topOffset, rightOffset, bottomOffset);
+                    //保存Rect供逆序layout用
+                    Rect rect = new Rect(leftOffset, topOffset + mVerticalOffset, rightOffset, bottomOffset + mVerticalOffset);
+                    mItemRects.put(i, rect);
+                    columnNumber++;
                     leftOffset += decoratedMeasurementHorizontal;
                     lineMaxHeight = Math.max(lineMaxHeight, decoratedMeasurementVertical);
                 } else {
+
                     //当前行排列不下
                     leftOffset = getPaddingLeft();
-                    topOffset += lineMaxHeight;
+//                    if (lineNumber == 0) {
+//                        topOffset += lineMaxHeight;
+//                    } else {
+//                    }
+                    topOffset += lineMaxHeight-decoratedMeasurementVertical / 2;
                     lineMaxHeight = 0;
+                    columnNumber = 0;
                     //新起一行的时候要判断一下边界
                     if (topOffset > getHeight() - getPaddingBottom()) {
                         //越界了 就回收
                         removeAndRecycleView(child, recycler);
-                        mLastVisiPos = i - 1;
+                        mLastVisiblePos = i - 1;
                     } else {
+                        lineNumber++;
                         layoutDecoratedWithMargins(child, leftOffset, topOffset, leftOffset + getDecoratedMeasurementHorizontal(child), topOffset + getDecoratedMeasurementVertical(child));
 
                         //保存Rect供逆序layout用
                         Rect rect = new Rect(leftOffset, topOffset + mVerticalOffset, leftOffset + getDecoratedMeasurementHorizontal(child), topOffset + getDecoratedMeasurementVertical(child) + mVerticalOffset);
                         mItemRects.put(i, rect);
-
+                        columnNumber++;
                         //改变 left  lineHeight
                         leftOffset += getDecoratedMeasurementHorizontal(child);
                         lineMaxHeight = Math.max(lineMaxHeight, getDecoratedMeasurementVertical(child));
@@ -185,16 +215,16 @@ public class CrossLayoutManager111 extends RecyclerView.LayoutManager {
 
         } else {
             int maxPos = getItemCount() - 1;
-            mFirstVisiPos = 0;
+            mFirstVisiblePos = 0;
             if (getChildCount() > 0) {
                 View firstView = getChildAt(0);
                 maxPos = getPosition(firstView) - 1;
             }
-            for (int i = maxPos; i >= mFirstVisiPos; i--) {
+            for (int i = maxPos; i >= mFirstVisiblePos; i--) {
                 Rect rect = mItemRects.get(i);
 
                 if (rect.bottom - mVerticalOffset - dy < getPaddingTop()) {
-                    mFirstVisiPos = i + 1;
+                    mFirstVisiblePos = i + 1;
                     break;
                 } else {
                     View child = recycler.getViewForPosition(i);

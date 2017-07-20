@@ -11,7 +11,7 @@
     android:layout_width="111dp"
     android:layout_height="111dp"/>
     <TextView
-
+android:id="@+id/tv_tv"
         android:background="@color/colorPrimaryDark"
         android:text="Meada"
         android:layout_marginTop="-11dp"
