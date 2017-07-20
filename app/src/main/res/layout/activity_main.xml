@@ -14,4 +14,10 @@
         android:layout_height="wrap_content">
 
     </Button>
+    <Button
+        android:text="交叉错位"
+        android:onClick="cross"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+    </Button>
 </LinearLayout>
