@@ -53,7 +53,7 @@ holder.mTextView.setText(position+"hhhhhhh");
 
         @Override
         public int getItemCount() {
-            return 40;
+            return 50;
         }
 
         public class ViewHolder extends RecyclerView.ViewHolder {

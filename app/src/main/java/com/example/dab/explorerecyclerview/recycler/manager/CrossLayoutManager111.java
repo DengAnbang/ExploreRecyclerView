@@ -56,7 +56,7 @@ public class CrossLayoutManager111 extends RecyclerView.LayoutManager {
         }
 
         int realOffset = dy;//实际滑动的距离， 可能会在边界处被修复
-        //边界修复代码
+//        //边界修复代码
         if (mVerticalOffset + realOffset < 0) {//上边界
             realOffset = -mVerticalOffset;
         } else if (realOffset > 0) {//下边界
@@ -65,7 +65,7 @@ public class CrossLayoutManager111 extends RecyclerView.LayoutManager {
             if (getPosition(lastChild) == getItemCount() - 1) {
                 int gap = getHeight() - getPaddingBottom() - getDecoratedBottom(lastChild);
                 if (gap > 0) {
-                    realOffset = -gap;
+                    realOffset = 0;
                 } else if (gap == 0) {
                     realOffset = 0;
                 } else {
@@ -74,7 +74,7 @@ public class CrossLayoutManager111 extends RecyclerView.LayoutManager {
             }
         }
 
-        realOffset = layout(recycler, realOffset);//先填充，再位移。
+         layout(recycler, realOffset);//先填充，再位移。
 
         mVerticalOffset += realOffset;//累加实际滑动距离
 
@@ -88,7 +88,7 @@ public class CrossLayoutManager111 extends RecyclerView.LayoutManager {
         layout(recycler, 0);
     }
 
-    private int layout(RecyclerView.Recycler recycler, int dy) {
+    private void layout(RecyclerView.Recycler recycler, int dy) {
         int topOffset = getPaddingTop();//布局时的上偏移
         //回收越界子View
         if (getChildCount() > 0) {//滑动时进来的
@@ -104,11 +104,9 @@ public class CrossLayoutManager111 extends RecyclerView.LayoutManager {
                     if (getDecoratedTop(child) - dy > getHeight() - getPaddingBottom()) {
 //                        removeAndRecycleView(child, recycler);
                         mLastVisiblePos--;
-
                     }
                 }
             }
-            //detachAndScrapAttachedViews(recycler);
         }
 
 
@@ -128,7 +126,6 @@ public class CrossLayoutManager111 extends RecyclerView.LayoutManager {
                 topOffset = getDecoratedTop(lastView);
                 leftOffset = getDecoratedRight(lastView);
                 lineMaxHeight = Math.max(lineMaxHeight, getDecoratedMeasurementVertical(lastView));
-
             }
 
             for (int i = minPos; i <= mLastVisiblePos; i++) {
@@ -174,13 +171,8 @@ public class CrossLayoutManager111 extends RecyclerView.LayoutManager {
                     leftOffset += decoratedMeasurementHorizontal;
                     lineMaxHeight = Math.max(lineMaxHeight, decoratedMeasurementVertical);
                 } else {
-
                     //当前行排列不下
                     leftOffset = getPaddingLeft();
-//                    if (lineNumber == 0) {
-//                        topOffset += lineMaxHeight;
-//                    } else {
-//                    }
                     topOffset += lineMaxHeight-decoratedMeasurementVertical / 2;
                     lineMaxHeight = 0;
                     columnNumber = 0;
@@ -203,16 +195,6 @@ public class CrossLayoutManager111 extends RecyclerView.LayoutManager {
                     }
                 }
             }
-            //添加完后，判断是否已经没有更多的ItemView，并且此时屏幕仍有空白，则需要修正dy
-            View lastChild = getChildAt(getChildCount() - 1);
-            if (getPosition(lastChild) == getItemCount() - 1) {
-                int gap = getHeight() - getPaddingBottom() - getDecoratedBottom(lastChild);
-                if (gap > 0) {
-                    dy -= gap;
-                }
-            }
-
-
         } else {
             int maxPos = getItemCount() - 1;
             mFirstVisiblePos = 0;
@@ -228,17 +210,12 @@ public class CrossLayoutManager111 extends RecyclerView.LayoutManager {
                     break;
                 } else {
                     View child = recycler.getViewForPosition(i);
-                    addView(child, 0);//将View添加至RecyclerView中，childIndex为1，但是View的位置还是由layout的位置决定
+                    addView(child, 0);
                     measureChildWithMargins(child, 0, 0);
-
                     layoutDecoratedWithMargins(child, rect.left, rect.top - mVerticalOffset, rect.right, rect.bottom - mVerticalOffset);
                 }
             }
-
         }
-
-
-        return dy;
     }
 
     /**
