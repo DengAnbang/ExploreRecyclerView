@@ -4,14 +4,13 @@
               android:layout_width="111dp"
               android:layout_height="wrap_content">
     <ImageView
-
     android:layout_marginTop="20dp"
     android:background="@mipmap/image_gongzhuuser2"
     android:id="@+id/iv_image"
     android:layout_width="111dp"
     android:layout_height="111dp"/>
     <TextView
-android:id="@+id/tv_tv"
+        android:id="@+id/tv_tv"
         android:background="@color/colorPrimaryDark"
         android:text="Meada"
         android:layout_marginTop="-11dp"
