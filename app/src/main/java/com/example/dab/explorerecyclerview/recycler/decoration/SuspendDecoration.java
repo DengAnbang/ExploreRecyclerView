@@ -4,6 +4,7 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
+import android.support.annotation.ColorInt;
 import android.support.annotation.IntDef;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -34,11 +35,11 @@ public abstract class SuspendDecoration extends RecyclerView.ItemDecoration {
 
     private static final String TAG = "SuspendDecoration";
 
-    private int mTitleHeight=100;//悬浮窗的高度
+    private int mTitleHeight;//悬浮窗的高度
     private Paint mBackgroundPaint;//悬浮窗的画笔
     private TextPaint mTextPaint;//悬浮窗内容的画笔
     @TitleGravity
-    private int mTitleGravity=TitleGravity.LEFT;//悬浮窗的内容显示位置(左,中,右)
+    private int mTitleGravity;//悬浮窗的内容显示位置(左,中,右)
     private int mTextOffsetX, mTextOffsetY;
 
     private Rect mRect;//悬浮窗的的矩形(动态改变的)
@@ -76,7 +77,6 @@ public abstract class SuspendDecoration extends RecyclerView.ItemDecoration {
         mRect = new Rect();
     }
 
-
     public SuspendDecoration() {
         mTitleHeight = 100;
         mBackgroundPaint = new Paint();
@@ -87,18 +87,14 @@ public abstract class SuspendDecoration extends RecyclerView.ItemDecoration {
         mTextPaint.setTextSize(30);
         mTextPaint.setColor(Color.DKGRAY);
         mRect = new Rect();
-        init();
     }
 
-    private void init() {
-
-    }
     /**
      * 设置字体的颜色
      *
      * @param color
      */
-    public SuspendDecoration setTextColor(int color) {
+    public SuspendDecoration setTextColor(@ColorInt int color) {
         mTextPaint.setColor(color);
         return this;
     }
@@ -128,7 +124,7 @@ public abstract class SuspendDecoration extends RecyclerView.ItemDecoration {
      *
      * @param color
      */
-    public SuspendDecoration setBackgroundColor(int color) {
+    public SuspendDecoration setBackgroundColor(@ColorInt int color) {
         mBackgroundPaint.setColor(color);
         return this;
     }
@@ -137,9 +133,9 @@ public abstract class SuspendDecoration extends RecyclerView.ItemDecoration {
     public void onDraw(Canvas canvas, RecyclerView parent, RecyclerView.State state) {
         super.onDraw(canvas, parent, state);
         canvas.save();
-        int firstVisibleItemPosition= getFirstVisibleItemPosition(parent);
-        int lastVisibleItemPosition= getLastVisibleItemPosition(parent);
-        for (int i = firstVisibleItemPosition; i < lastVisibleItemPosition; i++) {
+        int firstVisibleItemPosition = getFirstVisibleItemPosition(parent);
+        int lastVisibleItemPosition = getLastVisibleItemPosition(parent);
+        for (int i = firstVisibleItemPosition; i <= lastVisibleItemPosition; i++) {
             View child = parent.getLayoutManager().findViewByPosition(i);
             //判断是否需要显示悬浮窗
             try {
@@ -162,26 +158,39 @@ public abstract class SuspendDecoration extends RecyclerView.ItemDecoration {
     }
 
     public int getLastVisibleItemPosition(RecyclerView parent) {
-        int lastVisibleItemPosition=-1;
+        int lastVisibleItemPosition = -10;
         RecyclerView.LayoutManager layoutManager = parent.getLayoutManager();
         if (layoutManager instanceof LinearLayoutManager) {
             LinearLayoutManager linearLayoutManager = (LinearLayoutManager) layoutManager;
             lastVisibleItemPosition = linearLayoutManager.findLastVisibleItemPosition();
         }
-        if (lastVisibleItemPosition == -1) {
+        if (lastVisibleItemPosition == -10) {
             throw new IllegalArgumentException("需要重写getLastVisibleItemPosition()方法,提供最后一个可见item的Position");
         }
         return lastVisibleItemPosition;
     }
 
     public int getFirstVisibleItemPosition(RecyclerView parent) {
-        int firstVisibleItemPosition=-1;
+        int firstVisibleItemPosition = -10;
         RecyclerView.LayoutManager layoutManager = parent.getLayoutManager();
         if (layoutManager instanceof LinearLayoutManager) {
             LinearLayoutManager linearLayoutManager = (LinearLayoutManager) layoutManager;
             firstVisibleItemPosition = linearLayoutManager.findFirstVisibleItemPosition();
         }
-        if (firstVisibleItemPosition == -1) {
+        if (firstVisibleItemPosition == -10) {
+            throw new IllegalArgumentException("需要重写getFirstVisibleItemPosition()方法,提供第一个可见item的Position");
+        }
+        return firstVisibleItemPosition;
+    }
+
+    public int getFirstCompletelyVisibleItemPosition(RecyclerView parent) {
+        int firstVisibleItemPosition = -10;
+        RecyclerView.LayoutManager layoutManager = parent.getLayoutManager();
+        if (layoutManager instanceof LinearLayoutManager) {
+            LinearLayoutManager linearLayoutManager = (LinearLayoutManager) layoutManager;
+            firstVisibleItemPosition = linearLayoutManager.findFirstCompletelyVisibleItemPosition();
+        }
+        if (firstVisibleItemPosition == -10) {
             throw new IllegalArgumentException("需要重写getFirstVisibleItemPosition()方法,提供第一个可见item的Position");
         }
         return firstVisibleItemPosition;
@@ -193,7 +202,6 @@ public abstract class SuspendDecoration extends RecyclerView.ItemDecoration {
         boolean sameGroup = isSameGroup(position - 1, position);
 //        if (MainActivity.isDebug) Log.e(TAG, "shouldShowTitle: "+position + "***" + sameGroup);
         if (sameGroup) return false;
-
         return true;
 
 
@@ -230,14 +238,19 @@ public abstract class SuspendDecoration extends RecyclerView.ItemDecoration {
 //        LinearLayoutManager layoutManager = (LinearLayoutManager) parent.getLayoutManager();
         int firstVisibleItemPosition = getFirstVisibleItemPosition(parent);
         int lastVisibleItemPosition = getLastVisibleItemPosition(parent);
-
+        int firstCompletelyVisibleItemPosition = getFirstCompletelyVisibleItemPosition(parent);
         for (int i = firstVisibleItemPosition; i < lastVisibleItemPosition; i++) {
             View child = parent.getLayoutManager().findViewByPosition(i);
             try {
+
                 if (shouldShowTitle(i)) {
                     //判断当前悬浮窗是否需要被挤压,如果需要,就改变矩形的bottom
-                    if (mTitleHeight < child.getTop() && child.getTop() < mTitleHeight * 2) {
-                        textY = child.getTop() - mTitleHeight;
+                    if (firstCompletelyVisibleItemPosition > i) {
+                        continue;
+                    }
+                    int childTop = child.getTop();
+                    if (mTitleHeight < childTop && childTop < mTitleHeight * 2) {
+                        textY = childTop - mTitleHeight;
                     }
                     //不能依据当前的第一个来画悬浮
                     if (i == 0) continue;
@@ -258,12 +271,14 @@ public abstract class SuspendDecoration extends RecyclerView.ItemDecoration {
                 e.printStackTrace();
             }
         }
-        View child = parent.getLayoutManager().findViewByPosition(firstVisibleItemPosition);
+        //如果上面没画(就是没return),这里就补画一个
+        int firstVisibleItemPosition1 = getFirstVisibleItemPosition(parent);
+        View child = parent.getLayoutManager().findViewByPosition(firstVisibleItemPosition1);
         mRect.set(0, 0, child.getRight(), (int) textY);
         canvas.drawRect(mRect, mBackgroundPaint);
         //悬浮窗的内容
         try {
-            canvas.drawText(showTitle(firstVisibleItemPosition), getBaseLineX(mRect), getBaseLineY(mRect), mTextPaint);
+            canvas.drawText(showTitle(firstVisibleItemPosition1), getBaseLineX(mRect), getBaseLineY(mRect), mTextPaint);
         } catch (Exception e) {
             e.printStackTrace();
         }
